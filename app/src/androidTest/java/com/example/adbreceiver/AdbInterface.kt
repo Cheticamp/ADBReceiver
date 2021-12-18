@@ -9,6 +9,9 @@ package com.example.adbreceiver
  * On Windows, the code page may need to be changed to UTF-8 by using the following command:
  *      chcp 65001
  *
+ * Thanks to the GitHub project ADBKeyboard (https://github.com/senzhk/ADBKeyBoard) for the idea
+ * of a background receiver.
+ *
  */
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -65,12 +68,24 @@ class AdbInterface {
         val events = keyCharacterMap.getEvents(s.toCharArray())
         if (events == null) {
             // Unicode characters? Can't inject these until we determine how to do it.
-            mDevice?.findObject(By.focused(true))?.text = s
+            // The following will replace the entire focussed field.
+            setFocussedText(s)
         } else {
+            // Probably ASCII, so character-by-character insertion works.
             for (e in events) {
                 mInstrumentation.uiAutomation.injectInputEvent(e, true)
             }
         }
+    }
+
+    private fun clearText() {
+        setFocussedText(null)
+    }
+
+    // findObject has a lot of capabilities and the broadcasts can be greatly expanded to do more.
+    // Here, we will just concentrate on the focussed field.
+    private fun setFocussedText(s: String?) {
+        mDevice?.findObject(By.focused(true))?.text = s
     }
 
     private fun runUntilAskedToStop() {
@@ -110,7 +125,7 @@ class AdbInterface {
                 }
 
                 // Just clear the text field.
-                ACTION_CLEAR_TEXT -> inputMsg("")
+                ACTION_CLEAR_TEXT -> clearText()
 
                 // Stop running
                 ACTION_STOP -> {
