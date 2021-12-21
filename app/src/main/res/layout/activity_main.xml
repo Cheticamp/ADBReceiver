@@ -13,7 +13,7 @@
         android:layout_marginStart="16dp"
         android:layout_marginTop="64dp"
         android:layout_marginEnd="16dp"
-        android:text="@string/dont_use"
+        android:text="@string/do_not_use"
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
 </LinearLayout>

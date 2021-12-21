@@ -1,6 +1,6 @@
 package com.example.adbreceiver
 
-// See comments in AdbInteface in androidTest of this project.
+// See comments in AdbInterface in androidTest of this project.
 
 // Use another app to receive test data. Using this same app for the AdbInterface and
 // command testing will not work.

@@ -2,14 +2,23 @@ package com.example.adbreceiver
 
 /*
  * A stand-alone automation test that runs with a broadcast receiver that accepts Unicode text
- * from adb for display. This project runs as an instrumented test on Android to gain access to
- * the functionality of UI Automator (https://developer.android.com/training/testing/ui-automator)
+ * from adb for insertion into the key event stream.. This project runs as an instrumented test on
+ * Android to gain access to the functionality of UI Automator
+ * (https://developer.android.com/training/testing/ui-automator)
  *
  * Reason for this project: A common way to send character input into Android through adb for
  * testing is to use the "adb shell input [text]" command. This works well if the text is
  * ASCII but fails if the text is non-ASCII. This project is an attempt to overcome this
  * restriction by permitting non-ASCII Unicode characters to be delivered to the Android
  * system through the adb bridge.
+ *
+ * Prerequisites: The targeted Android system must have a physical keyboard enabled and active that
+ * is capable of creating the Unicode characters that the interface will receive to display. This
+ * is a requirement because this interface will receive Unicode characters, translate them into
+ * key codes/scan codes and deliver these codes to Android where the framework will translate them
+ * back to the Unicode characters for display/action. Without the physical keyboard software
+ * in place, Android will not be able to make a good translation back to the Unicode characters
+ * from the key codes/scan codes. Physical keyboard can be enabled in "Settings."
  *
  * To start the test from the command line (recommended):
  *
@@ -45,11 +54,11 @@ package com.example.adbreceiver
  * keyboard.
  *
  * For API 30 and up (currently just 31), the generated key events always produce an
- * ASCII result, so the text is sent directly to the view system through UI Automator for display.
- * The result is that, for an EditText, the entire contents of the view will be replaced. The
- * inability to create KeyEvents that register correctly with the display seems to be a change
- * in the behavior of the Android framework. As a result, text sent for display may have no effect
- * if there is not an EditText (or similar) field that has focus.
+ * ASCII result, so, for API 30+, the interface sends the text directly to the view system through
+ * UI Automator. The result is that, for an EditText, the entire contents of the view
+ * will be replaced. The inability to create KeyEvents that register correctly with the display
+ * seems to be a change in the behavior of the Android framework. As a result, text sent for
+ * display may have no effect if there is not an EditText (or similar) view that has focus.
  *
  * For instance, to send the Hebrew characters `שלום', do the following:
  *
@@ -65,10 +74,15 @@ package com.example.adbreceiver
  * Important! Make sure that the target that will receive the generated key events is not
  * part of this app since AdbInterface will fail.
  *
+ * If the software keyboard is enabled at the same time as the hardware keyboard, then a Unicode
+ * character followed immediately by a space will select an entry from a candidate list shown. This
+ * behavior is the same if the characters are entered directly from the hardware keyboard. Feature
+ * or bug? One work-around is to turn off auto-correction for the software keyboard.
+ *
  * Credit goes to the GitHub project ADBKeyboard (https://github.com/senzhk/ADBKeyBoard) for the
  * idea of a background receiver. In the author's opinion, ADBKeyboard is a better way to
- * implement the key event functionality, although it has the downside of requiring a keyboard
- * change.
+ * implement the key event functionality for all APIs, although it has the downside of requiring
+ * a keyboard change.
  *
  * Also, see
  * https://stackoverflow.com/questions/70160582/can-accessibilityservice-dispatch-key-events-including-even-unicode-characters
@@ -97,19 +111,6 @@ import org.junit.runner.RunWith
 class AdbInterface {
     private var mDevice: UiDevice? = null
     private var mStop = false
-
-    // Accept text input. The characters received should be characters that the current active
-    // physical keyboard can produce.
-    private val ACTION_MESSAGE = "ADB_INPUT_TEXT"
-
-    // Accept text input that is encoded in base-64.
-    private val ACTION_MESSAGE_B64 = "ADB_INPUT_B64"
-
-    // Clear the text field that has the current focus.
-    private val ACTION_CLEAR_TEXT = "ADB_CLEAR_TEXT"
-
-    // Stop this test and exit.
-    private val ACTION_STOP = "ADB_STOP"
 
     private var mReceiver: BroadcastReceiver? = null
     private val mInstrumentation = InstrumentationRegistry.getInstrumentation()
@@ -229,5 +230,18 @@ class AdbInterface {
 
     companion object {
         const val TAG = "AdbInterface"
+
+        // Accept text input. The characters received should be characters that the current active
+        // physical keyboard can produce.
+        private const val ACTION_MESSAGE = "ADB_INPUT_TEXT"
+
+        // Accept text input that is encoded in base-64.
+        private const val ACTION_MESSAGE_B64 = "ADB_INPUT_B64"
+
+        // Clear the text field that has the current focus.
+        private const val ACTION_CLEAR_TEXT = "ADB_CLEAR_TEXT"
+
+        // Stop this test and exit.
+        private const val ACTION_STOP = "ADB_STOP"
     }
 }

@@ -1,4 +1,4 @@
 <resources>
     <string name="app_name">ADB Receiver</string>
-    <string name="dont_use">Don\'t use the same app for testing and hosting AdbInterface.</string>
+    <string name="do_not_use">Don\'t use the same app for testing and hosting AdbInterface.</string>
 </resources>
